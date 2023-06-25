@@ -14,6 +14,7 @@ import com.programmingtechie.inventoryservice.dto.InventoryResponse;
 import com.programmingtechie.inventoryservice.service.InventoryService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/inventory")
@@ -25,7 +26,7 @@ public class InventoryController {
 	//http://localhost:8082/api/inventory?skuCode=iphone_13&skuCode=iphone_13_red
 	@GetMapping
 	@ResponseStatus(HttpStatus.OK)
-	public List<InventoryResponse> isInStock(@RequestParam("skuCode") List<String> skuCode) {
+	public List<InventoryResponse> isInStock(@RequestParam("skuCode") List<String> skuCode) throws InterruptedException {
 		
 		return inventoryService.isInStock(skuCode);
 		
