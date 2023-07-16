@@ -2,6 +2,8 @@ package com.programmingtechie.productservice.controller;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +24,15 @@ import lombok.RequiredArgsConstructor;
 public class ProductController {
 	
 	private final ProductService productService;
+	
+	@Autowired
+	private Environment env;
+	
+	@GetMapping("/statusCheck")
+	@ResponseStatus(HttpStatus.OK)
+	public String status() {
+		return "Working  on port "+env.getProperty("local.server.port");
+	}
 	
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
