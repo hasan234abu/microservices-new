@@ -42,7 +42,9 @@ public class ProductController {
 		logger.info("Hey ProductService statusCheck invoked");
 		return "Working  on port "+env.getProperty("local.server.port")+
 				" ,with custom prop value1="+env.getProperty("custom.prop.value1")+
-				", and with custom prop value2="+env.getProperty("custom.prop.value2");
+				", with custom prop value2="+env.getProperty("custom.prop.value2")+
+				", with custom prop value3="+env.getProperty("custom.prop.value3")+
+				", with custom prop value4="+env.getProperty("custom.prop.value4");
 	}
 	
 	@PostMapping
