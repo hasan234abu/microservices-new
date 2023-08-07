@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -20,6 +21,7 @@ import com.programmingtechie.orderservice.model.Order;
 import com.programmingtechie.orderservice.model.OrderLineItems;
 import com.programmingtechie.orderservice.repository.OrderRepository;
 
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,6 +38,56 @@ public class OrderService {
 	private final Tracer tracer;
 	
 	private final KafkaTemplate kafkaTemplate;
+	
+	@Autowired
+	InventoryServiceClient inventoryServiceClient;
+	
+
+	public String placeOrderByFeignClient(OrderRequest orderRequest) {
+		Order order=new Order();
+		order.setOrderNumber(UUID.randomUUID().toString());
+		List<OrderLineItems> orderLineItems= orderRequest.getOrderLineItemsDtoList()
+		.stream()
+		.map(this::mapToDto)
+		.toList();
+		order.setOrderLineItemsList(orderLineItems);
+		
+		List<String> skuCodes=order.getOrderLineItemsList().stream()
+				.map(orderLineItem->orderLineItem.getSkuCode())
+				.toList();
+		
+		
+		log.info("calling inventory service");
+		
+		Span inventoryServiceLookup=tracer.nextSpan().name("InventoryServiceLookup");
+		
+		try(Tracer.SpanInScope spanInScope=tracer.withSpan(inventoryServiceLookup.start())) {
+			//Call inventory service, and place order if in stock
+			List<InventoryResponse> inventoryResponseList=inventoryServiceClient.isInStock(skuCodes);
+			boolean allProdcutInStock=inventoryResponseList.stream().allMatch(InventoryResponse::isInStock);
+			System.out.println("inventoryResponseList="+inventoryResponseList);
+			if(allProdcutInStock) {
+				orderRepository.save(order);
+				//kafkaTemplate.send("notificationTopic", new OrderPlacedEvent(order.getOrderNumber()));
+				return "Order placed successfully";
+			}else {
+				throw new IllegalArgumentException("Product is not in Stock, Please try later");
+			}
+			
+		}
+		//catch(FeignException ex){
+			//log.error("Feign Exception",ex);
+		//}
+		catch(InterruptedException ex){
+			log.error("InterruptedException Exception",ex);
+		}finally {
+			inventoryServiceLookup.end();
+		}
+		
+		return "Order placed successfully";
+		
+	}
+
 
 	public String placeOrder(OrderRequest orderRequest) {
 		Order order=new Order();
@@ -67,7 +119,7 @@ public class OrderService {
 			boolean allProdcutInStock=Arrays.stream(inventoryResponseArray).allMatch(InventoryResponse::isInStock);
 			if(allProdcutInStock) {
 				orderRepository.save(order);
-				kafkaTemplate.send("notificationTopic", new OrderPlacedEvent(order.getOrderNumber()));
+				//kafkaTemplate.send("notificationTopic", new OrderPlacedEvent(order.getOrderNumber()));
 				return "Order placed successfully";
 			}else {
 				throw new IllegalArgumentException("Product is not in Stock, Please try later");
@@ -79,6 +131,8 @@ public class OrderService {
 		
 		
 	}
+	
+
 
 	private OrderLineItems mapToDto(OrderLineItemsDto orderLineItemsDto) {
 		OrderLineItems orderLineItems=new OrderLineItems();

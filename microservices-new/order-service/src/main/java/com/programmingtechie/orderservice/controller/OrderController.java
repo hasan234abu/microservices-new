@@ -19,13 +19,13 @@ import io.micrometer.core.annotation.TimedSet;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/order")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class OrderController {
 	
 	private final OrderService orderService;
 	
-	@PostMapping
+	@PostMapping(value ="/order")
 	@ResponseStatus(HttpStatus.CREATED)
 	@CircuitBreaker(name="inventory", fallbackMethod = "fallbackMehtod")
 	//@TimeLimiter(name="inventory")
@@ -34,6 +34,12 @@ public class OrderController {
 		return CompletableFuture.supplyAsync(()->orderService.placeOrder(orderRequest));
 		//return "Order placed successfully";
 		
+	}
+	
+	@PostMapping(value  = "/orderByFeignClient")
+	@ResponseStatus(HttpStatus.CREATED)
+	public String placeOrderByFeignClient(@RequestBody OrderRequest orderRequest) {
+		return orderService.placeOrderByFeignClient(orderRequest);
 	}
 	
 	
