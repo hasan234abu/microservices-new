@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-
+import com.programmingtechie.productservice.dto.OrderResponse;
 import com.programmingtechie.productservice.dto.ProductRequest;
 import com.programmingtechie.productservice.dto.ProductResponse;
 import com.programmingtechie.productservice.service.ProductService;
@@ -40,6 +40,7 @@ public class ProductController {
 	@ResponseStatus(HttpStatus.OK)
 	public String status() {
 		logger.info("Hey ProductService statusCheck invoked");
+		logger.debug("Hey ProductService statusCheck invoked");
 		return "Working  on port "+env.getProperty("local.server.port")+
 				" ,with custom prop value1="+env.getProperty("custom.prop.value1")+
 				", with custom prop value2="+env.getProperty("custom.prop.value2")+
@@ -57,6 +58,12 @@ public class ProductController {
 	@ResponseStatus(HttpStatus.OK)
 	public List<ProductResponse> getAllProducts() {
 		return productService.getAllProducts();
+	}
+	
+	@GetMapping(value ="/allOrders")
+	@ResponseStatus(HttpStatus.OK)
+	public List<OrderResponse> getAllOrders() {
+		return productService.getAllOrders();
 	}
 
 }

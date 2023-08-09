@@ -3,6 +3,7 @@ package com.programmingtechie.orderservice.service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.programmingtechie.orderservice.dto.InventoryResponse;
 import com.programmingtechie.orderservice.dto.OrderLineItemsDto;
 import com.programmingtechie.orderservice.dto.OrderRequest;
+import com.programmingtechie.orderservice.dto.OrderResponse;
 import com.programmingtechie.orderservice.event.OrderPlacedEvent;
 import com.programmingtechie.orderservice.model.Order;
 import com.programmingtechie.orderservice.model.OrderLineItems;
@@ -138,5 +140,14 @@ public class OrderService {
 		OrderLineItems orderLineItems=new OrderLineItems();
 		BeanUtils.copyProperties(orderLineItemsDto, orderLineItems);
 		return orderLineItems;
+	}
+
+
+	public List<OrderResponse> getOrders() {
+		List<Order> orders=orderRepository.findAll();
+		List<OrderResponse> orderRespList = orders.stream()
+			    .map(car-> new OrderResponse(car.getId(),car.getOrderNumber()))
+			    .collect(Collectors.toList());
+		return orderRespList;
 	}
 }

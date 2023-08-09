@@ -2,8 +2,10 @@ package com.programmingtechie.productservice.service;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.programmingtechie.productservice.dto.OrderResponse;
 import com.programmingtechie.productservice.dto.ProductRequest;
 import com.programmingtechie.productservice.dto.ProductResponse;
 import com.programmingtechie.productservice.model.Product;
@@ -17,6 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProductService {
 
+	
+	@Autowired
+	OrderServiceClient orderServiceClient;
+	
 	private final ProductRepository productRepository;
 	
 	public void createProduct(ProductRequest productRequest) {
@@ -43,5 +49,9 @@ public class ProductService {
 				.description(product.getDescription())
 				.price(product.getPrice())
 				.build();
+	}
+
+	public List<OrderResponse> getAllOrders() {
+		return orderServiceClient.getOrder();
 	}
 }
